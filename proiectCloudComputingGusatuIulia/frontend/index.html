@@ -1,0 +1,245 @@
+
+<!DOCTYPE html>
+<html style="background-color: mintcream;">
+    <head>
+
+        <title>BooksMania</title>
+    </head>
+    <body>
+        <h1>Hello, book lover!</h1>
+        <div style ="display: inline-block">
+            <div style ="float: left; padding-left: 45px; border: 3px;border-color: black;border-style: solid;">
+        <form style="margin: 10px;margin-left: -17px;">
+  <input type="hidden" name="id" id="id" /><br />
+  FirstName:<br />
+  <input type="text" name="firstName" id="firstName" style="background-color: aquamarine;border-block-end-style: initial"/><br />
+  Email:<br />
+  <input type="text" name="email" id="email" style="border-block-end-style: initial;background-color: chartreuse;"><br/>
+  UserName:<br />
+  <input type="text" name="userName" id="userName" style="background-color: chartreuse;border-block-end-style: initial"><br/>
+  Password:<br />
+  <input type="text" name="password" id="password" style="background-color: floralwhite; border-block-end-style: initial"><br/>
+  <br/>
+  <input type="submit" value="Register" style="border-style: solid; border-color: black;" onSubmit="saveUsers()">
+  <input type="reset" value="Cancel" style="border-style: solid; border-color: black;">
+</form>
+</div>
+<div style ="float: right; margin-left:271px; border-color:black ; border-padding: 10px; border: 5px; border-style: solid;">
+   <p style=" margin:25px">Add a book to your library</p> 
+  <form style=" margin-left: 15px;"onSubmit="saveBooks(event)">
+  <input type="hidden" name="id" id="id" /><br />
+  Title:<br />
+  <input type="text" name="title" id="title"   style="background-color: lavender;border-block-end-style: initial"/><br />
+  Author:<br />
+  <input type="text" name="author" id="author" style="background-color: cornflowerblue; border-block-end-style: initial"><br/>
+  URL:<br />
+  <input type="text" name="url" id="url" style="background-color: greenyellow;border-block-end-style: initial"><br/>
+  <input type="submit" value="Register" style=" margin-bottom: 10px;border-style: solid;border-color: black;">
+  <input type="reset" value="Cancel"style="border-style: solid;border-color: black;">
+</form>
+</div>
+</div>
+<div   onSubmit ="showBooks()"id ="table"style="border-color:black ; border-padding: 10px; border: 5px; border-style: solid; margin-right: 427px; margin-left: 477px;">
+ 
+</div>
+<div style="padding:10px">
+    
+</div>
+<div style ="display: inline-block border-color: black; border-style: solid;">
+<div id="search"  style=" padding: 10px; margin: 10px;">
+    	<label  style="font-family: fantasy;font-size: 30px" for="search">Search Books</label>
+		<form id="myform">
+			<div >
+				<input type="search" id="books">
+			
+			</div>
+			<button style="border-style: solid; border-color: black; background:red"  >Search Books</button>
+		</form>
+	</div>
+	<div id="result">
+		
+	</div>
+</div>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+ <script 
+    src="https://code.jquery.com/jquery-3.3.1.min.js"
+    integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous"></script>
+
+<script>
+
+    $(document).ready(function() {
+        console.log('Hello from JQuery')
+        showBooks()
+    })
+function showBooks() {
+    axios.get('/books').then(function(results) {
+
+        let html = ` <table style="width:500px;">
+                <tr>
+                    <th style="padding:10px">ID</th>
+                    <th style="padding:10px">Title</th>
+                    <th style="padding:10px">Author</th> 
+                    <th style="padding:10px">URL</th>
+                   
+                </tr>`
+
+        results.data.forEach(function(element) {
+            html += `<tr>
+                        <td>${element.id}</td>
+                        <td>${element.title}</td>
+                        <td>${element.author}</td>
+                        <td>${element.url}</td>
+                        <td>
+                            <button onClick="editBooks(${element.id})" onClick="editBooks">Edit</button>
+                            <button onClick="deleteBooks(${element.id})" onClick="deleteBooks">Delete</button>
+                        </td>
+                    </tr>`
+        })
+
+        html += `</table>`
+
+        $('#table').html(html)
+    }).catch(function(error) {
+        console.log(error)
+    })
+}
+
+function saveBooks(event) {
+    event.preventDefault()
+
+    let id = $('#id').val()
+    let title = $('#title').val()
+    let author = $('#author').val()
+    let url = $('#url').val() 
+
+    if(id) {
+        //make a request to PUT /messages/:id
+  axios.put('/books/'+id, {
+    title: title,
+    author: author,
+    url: url
+}).then(function(result) {
+    showBooks()
+    $(event.target).trigger("reset")
+}).catch(function(err) {
+    alert('Resource could not be saved')
+})
+    } else {
+        //make a request to POST /messages
+axios.post('/books', {
+    title: title,
+    author: author,
+    url: url
+}).then(function(result) {
+    showBooks()
+    $(event.target).trigger("reset")
+}).catch(function(err) {
+    alert('Resource could not be saved')
+})
+    }
+
+}
+
+ function editBooks(id) {
+    //get the values from the server
+    axios.get('/books/'+id).then(function(result) {
+        //display values in the form
+        $('#id').val(result.data.id)
+        $('#title').val(result.data.title)
+        $('#author').val(result.data.author)
+        $('#url').val(result.data.url) 
+    }).catch(function(err) {
+        console.log(err)
+        alert('Could not find resource')
+    })
+}
+
+function deleteBooks(id) {
+    axios.delete('/books/'+id).then(function(result) {
+        showBooks()
+    }).catch(function(err) {
+        alert('Resource could not delete resource')
+    })
+}
+
+function saveUsers(event) {
+    event.preventDefault()
+
+    let id = $('#id').val()
+    let firstName = $('#firstName').val()
+    let email = $('#email').val()
+    let userName = $('#userName').val() 
+    let password = $('#password').val() 
+    if(id) {
+        //make a request to PUT /messages/:id
+  axios.put('/users/'+id, {
+    firstName: firstName,
+    email: email,
+    userName: userName,
+    password: password
+}).then(function(result) {
+  
+    $(event.target).trigger("reset")
+}).catch(function(err) {
+    alert('Resource could not be saved')
+})
+    } else {
+        //make a request to POST /messages
+axios.post('/users', {
+    firstName: firstName,
+    email: email,
+    userName: userName,
+    password: password
+}).then(function(result) {
+   
+    $(event.target).trigger("reset")
+}).catch(function(err) {
+    alert('Resource could not be saved')
+})
+    }
+
+}
+$(document).ready(function(){	
+
+   $("#myform").submit(function(){
+
+   	  var search = $("#books").val();
+   	  if(search == "")
+   	  {
+   	  	alert("Please enter something in the field");
+   	  }
+   	  else{		
+   	  var url = "";
+   	  var img = "";
+      var title = "";
+      var author = "";
+
+   	  $.get("https://www.googleapis.com/books/v1/volumes?q=" + search,function(response){
+
+         for(i=0;i<response.items.length;i++)
+          {
+           title=$('<h5 >' + response.items[i].volumeInfo.title + '</h5>');  
+           author=$('<h5 > By:' + response.items[i].volumeInfo.authors + '</h5>');
+           img = $('<img ><br><a href=' + response.items[i].volumeInfo.infoLink + '><button id="imagebutton" style="border-style: solid; border-color: black; background: red"  >Read More</button></a>'); 	
+           url= response.items[i].volumeInfo.imageLinks.thumbnail;
+           img.attr('src', url);
+           title.appendTo('#result');
+           author.appendTo('#result');
+           img.appendTo('#result');
+          }
+   	  });
+      
+      }
+      return false;
+   });
+
+});
+
+
+
+</script>
+
+
+    </body>
+</html>
